@@ -2,6 +2,11 @@
 Models
 
 '''
+
+
+from pyexpat import model
+from unittest.util import _MAX_LENGTH
+from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import (
     BaseUserManager,
@@ -45,6 +50,46 @@ class User(AbstractBaseUser, PermissionsMixin):
     objects = UserManager()
     
     USERNAME_FIELD = 'email'
+    
+
+class Recipe(models.Model):
+    ''''
+    model for recipe app
+    '''
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete = models.CASCADE
+    )
+    title =models.CharField(max_length =255)
+    time_minutes = models.IntegerField()
+    price = models.DecimalField(max_digits =5,decimal_places =2)
+    link = models.CharField(max_length = 255,blank=True)
+    description = models.TextField(blank =True)
+    
+    
+    def __str__(self):
+        return self.title
+    
+    
+class Makeup(models.Model):
+    '''
+    model for makeup app
+    '''
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete = models.CASCADE
+    )
+    
+    name = models.CharField(max_length =255)
+    items = models.CharField(max_length =255)
+    sequence_steps = models.CharField(max_length =255)
+    cost = models.IntegerField()
+    time = models.IntegerField()
+    
+    def __str__(self):
+        return self.name
+    
+    
     
     
     
