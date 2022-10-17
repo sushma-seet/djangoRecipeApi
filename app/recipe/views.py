@@ -2,11 +2,11 @@
 view for recipe
 '''
 
-from rest_framework import viewsets
+from rest_framework import viewsets,mixins
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 
-from core.models import Recipe
+from core import models
 from recipe import serializers
 
 
@@ -16,7 +16,7 @@ class RecipeView(viewsets.ModelViewSet):
     '''
     
     serializer_class = serializers.RecipeDetailSerializer
-    queryset = Recipe.objects.all()
+    queryset = models.Recipe.objects.all()
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
     
@@ -27,15 +27,28 @@ class RecipeView(viewsets.ModelViewSet):
         '''
         change serializer depending on the endpoint
         '''
-        
         if self.action == 'list':
             return serializers.RecipeSerializer
+        return self.serializer_class
         
-        else:
-            return self.serializer_class
-        
-    def perform_create(self,serializer):
-        '''
-        creating new recipe
-        '''
+    def perform_create(self, serializer):
+        """Create a new recipe."""
         serializer.save(user=self.request.user)
+        
+
+class TageView(
+    mixins.DestroyModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet
+    ):
+    ''' views for tags'''
+    serializer_class = serializers.TagSerializer
+    queryset = models.Tag.objects.all()
+    authentication_classes =[TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        ''' filter for current user'''
+        return self.queryset.filter(user = self.request.user) 
+    

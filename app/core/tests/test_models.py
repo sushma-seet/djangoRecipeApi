@@ -2,11 +2,16 @@
 Testing Models
 '''
 from decimal import Decimal
+from statistics import mode
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 
 from core import models
 
+
+
+def create_user(email,password):
+    return get_user_model().objects.create_user(email = email,password=password)
 
 class ModelTests(TestCase):
     '''
@@ -18,10 +23,7 @@ class ModelTests(TestCase):
         email = 'sushma.kalluri@gmail.com'
         password = 'sushma12345'
         
-        user = get_user_model().objects.create_user(
-            email = email,
-            password = password
-        )
+        user = create_user(email = email,password = password)
         
         self.assertEqual(user.email, email)
         self.assertTrue(user.check_password(password))
@@ -59,7 +61,7 @@ class ModelTests(TestCase):
         '''
         testing create recipe successful
         '''
-        user =get_user_model().objects.create_user(
+        user =create_user(
             email = 'sample@gmail.com',
             password = 'sample123',
         )
@@ -73,4 +75,20 @@ class ModelTests(TestCase):
         )
         
         self.assertEqual(str(recipe),recipe.title)
+        
+    def test_create_tag_model(self):
+        '''
+        testing creating tag model
+        '''
+        user = create_user(
+            email='user@gmail.com',
+            password = 'user123'
+        )
+
+        tag = models.Tag.objects.create(
+            user = user,
+            name = 'test tag'
+        )
+
+        self.assertEqual(str(tag),tag.name)
         
