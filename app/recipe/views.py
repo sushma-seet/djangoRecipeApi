@@ -52,3 +52,17 @@ class TageView(
         ''' filter for current user'''
         return self.queryset.filter(user = self.request.user) 
     
+class IngredientView(
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet
+    ):
+    ''' views for Ingredients'''
+    serializer_class = serializers.IngredientSerializer
+    queryset = models.Ingredients.objects.all()
+    authentication_classes =[TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        ''' filter for current user'''
+        return self.queryset.filter(user = self.request.user) 
+    

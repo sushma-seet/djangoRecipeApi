@@ -13,6 +13,7 @@ from django.urls import (
 router = DefaultRouter()
 router.register('recipes',views.RecipeView)
 router.register('tags',views.TageView)
+router.register('ingredients',views.IngredientView)
 
 app_name ='recipe'
 
