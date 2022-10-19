@@ -53,6 +53,8 @@ class TageView(
         return self.queryset.filter(user = self.request.user) 
     
 class IngredientView(
+    mixins.DestroyModelMixin,
+    mixins.UpdateModelMixin,
     mixins.ListModelMixin,
     viewsets.GenericViewSet
     ):
@@ -64,5 +66,5 @@ class IngredientView(
     
     def get_queryset(self):
         ''' filter for current user'''
-        return self.queryset.filter(user = self.request.user) 
+        return self.queryset.filter(user = self.request.user).order_by('-name')
     

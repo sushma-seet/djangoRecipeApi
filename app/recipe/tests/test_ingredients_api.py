@@ -2,7 +2,6 @@
 Tets for ingredients api
 
 '''
-
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
@@ -15,7 +14,11 @@ from recipe.serializers import IngredientSerializer
 
 
 
-INGREDIENTS_URL = reverse('recipe:ingredient-list')
+INGREDIENTS_URL = reverse('recipe:ingredients-list')
+
+def detail_url(ingredient_id):
+    ''' detail url for ingredients'''
+    return reverse('recipe:ingredient-detail',args=[ingredient_id])
 
 def create_user(email = 'test_user@gmail.com',password= 'test123'):
     '''creating user for testing'''
@@ -23,7 +26,7 @@ def create_user(email = 'test_user@gmail.com',password= 'test123'):
 
 class PublicIngredientApiTests(TestCase):
     ''' Testing Ingredients with public user'''
-        
+
     def setUp(self):
         ''' Test client'''
         self.client = APIClient()
@@ -39,9 +42,9 @@ class PrivateIngredientApiTests(TestCase):
     ''' Testing Ingredients api with authorized user'''
     
     def setUp(self) :
-        self.client = APIClient()
         self.user = create_user()
-        self.client.force_authenticate(self.user)
+        self.client = APIClient()
+        self.client.force_authenticate(user =self.user)
         
         
     def test_retrieve_ingredients_with_authorized_user(self):
@@ -54,7 +57,7 @@ class PrivateIngredientApiTests(TestCase):
         
         ingredients = Ingredients.objects.all().order_by('-name')
         serializer = IngredientSerializer(ingredients, many = True)
-        self.assertEqual(res.status_code, status.HTTP_200_Ok)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data, serializer.data)
         
         
@@ -76,6 +79,32 @@ class PrivateIngredientApiTests(TestCase):
         self.assertEqual(len(res.data),1)
         self.assertEqual(res.data[0]['name'],ingredient.name)
         self.assertEqual(res.data[0]['id'],ingredient.id)
+        
+    def test_update_ingredients(self):
+        ''' test update ingredients'''
+        ingredient = Ingredients.objects.create(user = self.user,name ='zinger')
+        
+        payload = {'name':'garlic'}
+        url = detail_url(ingredient.id)
+        
+        res = self.client.patch(url,payload)
+        
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        ingredient.refresh_from_db()
+        self.assertEqual(res.data['name'],payload['name'])
+        
+    def test_delete_ingredients(self):
+        ''' test delete ingredients'''
+        ingredient = Ingredients.objects.create(user = self.user,name ='zinger')
+        url = detail_url(ingredient.id)
+        
+        res = self.client.delete(url)
+        
+        self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
+        
+        
+        
+        
     
         
         

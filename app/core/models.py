@@ -3,9 +3,6 @@ Models
 
 '''
 
-
-from pyexpat import model
-from unittest.util import _MAX_LENGTH
 from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import (
@@ -66,7 +63,7 @@ class Recipe(models.Model):
     link = models.CharField(max_length = 255,blank=True)
     description = models.TextField(blank =True)
     tags = models.ManyToManyField('Tag')
-    Ingredients = models.ManyToManyField('Ingredients')
+    ingredients = models.ManyToManyField('Ingredients')
     
     
     def __str__(self):
