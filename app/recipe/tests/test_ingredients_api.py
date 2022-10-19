@@ -18,7 +18,7 @@ INGREDIENTS_URL = reverse('recipe:ingredients-list')
 
 def detail_url(ingredient_id):
     ''' detail url for ingredients'''
-    return reverse('recipe:ingredient-detail',args=[ingredient_id])
+    return reverse('recipe:ingredients-detail',args=[ingredient_id])
 
 def create_user(email = 'test_user@gmail.com',password= 'test123'):
     '''creating user for testing'''

@@ -35,6 +35,7 @@ class RecipeView(viewsets.ModelViewSet):
         """Create a new recipe."""
         serializer.save(user=self.request.user)
         
+        
 
 class TageView(
     mixins.DestroyModelMixin,

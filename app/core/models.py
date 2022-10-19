@@ -73,11 +73,12 @@ class Tag(models.Model):
     '''
     create tag model
     '''
+    
+    name = models.CharField(max_length = 255)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        on_delete = models.CASCADE
+        on_delete = models.CASCADE,
     )
-    name = models.CharField(max_length = 255)
     
     def __str__(self):
         return self.name
@@ -86,11 +87,12 @@ class Ingredients(models.Model):
     '''
     create ingredients model
     '''
+    name = models.CharField(max_length = 255)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        on_delete = models.CASCADE
+        on_delete = models.CASCADE,
     )
-    name = models.CharField(max_length = 255)
+    
     
     def __str__(self):
         return self.name
@@ -102,7 +104,7 @@ class Makeup(models.Model):
     '''
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        on_delete = models.CASCADE
+        on_delete = models.CASCADE,
     )
     
     name = models.CharField(max_length =255)
