@@ -3,12 +3,12 @@ testing recipe api
 
 '''
 
-from email.mime import image
+
 import tempfile
 import os
 
-from PIL import Image
 
+from PIL import Image
 from decimal import Decimal
 from django.contrib.auth import get_user_model
 from django.urls import reverse
@@ -358,6 +358,54 @@ class PrivateRecipeAPITests(TestCase):
         
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(recipe.ingredients.count(),0)
+        
+    def test_filter_by_tags(self):
+        ''' Testing recipes by filtering tags'''
+        
+        chicken_recipe = create_recipe(user = self.user,title ='chicken fry')
+        french_fries_recipe = create_recipe(user=self.user,title = 'french fries')
+        
+        tag_1 = models.Tag.objects.create(user =self.user,name ='non-veg')
+        tag_2 = models.Tag.objects.create(user = self.user, name ='veg')
+        
+        chicken_recipe.tags.add(tag_1)
+        french_fries_recipe.tags.add(tag_2)
+        fish_recipe = create_recipe(user= self.user, title ='fish curry')
+        
+        payload = {'tags':f'{tag_1.id},{tag_2.id}'}
+        res = self.client.get(RECIPES_URL, payload)
+        
+        serializer_1 = serializers.RecipeSerializer(chicken_recipe)
+        serializer_2 = serializers.RecipeSerializer(french_fries_recipe)
+        serializer_3 = serializers.RecipeSerializer(fish_recipe)
+        
+        self.assertIn(serializer_1.data, res.data)
+        self.assertIn(serializer_2.data, res.data)
+        self.assertNotIn(serializer_3.data, res.data)
+        
+    def test_filter_by_ingredients(self):
+        ''' Testing recipes by ingredients tags'''
+        
+        chicken_roll_recipe = create_recipe(user = self.user,title ='chicken roll')
+        egg_bites_recipe = create_recipe(user=self.user,title = 'egg bites')
+        prawns_recipe = create_recipe(user= self.user, title ='prawns curry')
+        
+        ingredient_1 = models.Ingredients.objects.create(user =self.user,name ='maida')
+        ingredient_2 = models.Ingredients.objects.create(user = self.user, name ='egg')
+        
+        chicken_roll_recipe.ingredients.add(ingredient_1)
+        egg_bites_recipe.ingredients.add(ingredient_2)
+        
+        payload = {'ingredients':f'{ingredient_1.id},{ingredient_2.id}'}
+        serializer_1 = serializers.RecipeSerializer(chicken_roll_recipe)
+        serializer_2 = serializers.RecipeSerializer(egg_bites_recipe)
+        serializer_3 = serializers.RecipeSerializer(prawns_recipe)
+        
+        res = self.client.get(RECIPES_URL, payload)
+        
+        self.assertIn(serializer_1.data, res.data)
+        self.assertIn(serializer_2.data, res.data)
+        self.assertNotIn(serializer_3.data, res.data)
         
 class ImageUploadTests(TestCase):
     ''' Testing upload images'''

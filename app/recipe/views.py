@@ -2,6 +2,13 @@
 view for recipe
 '''
 
+import enum
+from drf_spectacular.utils import (
+    extend_schema_view,
+    extend_schema,
+    OpenApiParameter,
+    OpenApiTypes,
+)
 from rest_framework import viewsets,mixins,status
 
 from rest_framework.decorators import action
@@ -13,6 +20,24 @@ from core import models
 from recipe import serializers
 
 
+
+
+@extend_schema_view(
+    list = extend_schema(
+        parameters = [
+            OpenApiParameter(
+                'tags',
+                OpenApiTypes.STR,
+                description = 'Comma separated list of tag ids'
+            ),
+            OpenApiParameter(
+                'ingredients',
+                OpenApiTypes.STR,
+                description = 'Comma separated list of ingredient ids'
+            )
+        ],
+    ),
+)
 class RecipeView(viewsets.ModelViewSet):
     '''
     View for manage recipe
@@ -23,8 +48,24 @@ class RecipeView(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
     
+    def _params_to_int(self,qs):
+        '''convert list of strings to int'''
+        return [int(str_id) for str_id in qs.split(',')]
+    
     def get_queryset(self):
-        return self.queryset.filter(user=self.request.user).order_by('-id')
+        '''Retrieve recipe for authentication'''
+        tags = self.request.query_params.get('tags')   
+        ingredients = self.request.query_params.get('ingredients')
+        queryset = self.queryset
+        if tags:
+            tag_ids = self._params_to_int(tags)
+            queryset = queryset.filter(
+                tags__id__in =tag_ids
+            )     
+        if ingredients:
+            ingredient_ids = self._params_to_int(ingredients)
+            queryset = queryset.filter(ingredients__id__in = ingredient_ids)
+        return queryset.filter(user=self.request.user).order_by('-id').distinct()
     
     def get_serializer_class(self):
         '''
@@ -51,7 +92,19 @@ class RecipeView(viewsets.ModelViewSet):
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
 
+@extend_schema_view(
+    list = extend_schema(
+        parameters = [
+            OpenApiParameter(
+                'assigned_only',
+                OpenApiTypes.INT,
+                description ='filter by items assigned to recipe'
+            ),
+        ]
+    ),
+)
 class TageView(
     mixins.DestroyModelMixin,
     mixins.UpdateModelMixin,
@@ -66,8 +119,26 @@ class TageView(
     
     def get_queryset(self):
         ''' filter for current user'''
-        return self.queryset.filter(user = self.request.user) 
+        assigned_only = bool(
+            int(self.request.query_params.get('assigned_only',0))
+        )
+        queryset = self.queryset
+        if assigned_only:
+            queryset = queryset.filter(recipe__isnull=False)
+        return queryset.filter(user = self.request.user).order_by('-name').distinct()
     
+    
+@extend_schema_view(
+    list = extend_schema(
+        parameters = [
+            OpenApiParameter(
+                'assigned_only',
+                OpenApiTypes.INT,
+                description ='filter by items assigned to recipe'
+            ),
+        ]
+    ),
+)    
 class IngredientView(
     mixins.DestroyModelMixin,
     mixins.UpdateModelMixin,
@@ -82,5 +153,11 @@ class IngredientView(
     
     def get_queryset(self):
         ''' filter for current user'''
-        return self.queryset.filter(user = self.request.user).order_by('-name')
+        assigned_only = bool(
+            int(self.request.query_params.get('assigned_only',0))
+        )
+        queryset = self.queryset
+        if assigned_only:
+            queryset = queryset.filter(recipe__isnull=False)
+        return queryset.filter(user = self.request.user).order_by('-name').distinct()
     
