@@ -4,6 +4,7 @@ Models
 '''
 
 from distutils.command import upload
+from pydoc import describe
 import uuid
 import os
 from django.conf import settings
@@ -120,10 +121,45 @@ class Makeup(models.Model):
     )
     
     name = models.CharField(max_length =255)
-    items = models.CharField(max_length =255)
-    sequence_steps = models.CharField(max_length =255)
     cost = models.IntegerField()
     time = models.IntegerField()
+    description = models.TextField()
+    
+    
+    def __str__(self):
+        return self.name
+    
+class Movie(models.Model):
+    '''
+    customized model for practice
+    '''
+    
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete = models.CASCADE,
+    )
+    
+    name = models.CharField(max_length = 255)
+    release_date = models.DateField()
+    ratings = models.DecimalField(max_digits =6,decimal_places =2)
+    director = models.CharField(max_length = 255,blank=True)
+    producer = models.CharField(max_length = 255,blank=True)
+    characters = models.ManyToManyField('Characters')
+    
+    def __str__(self):
+        return self.name
+        
+        
+class Characters(models.Model):
+    
+    '''
+    characters for movies
+    '''
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete = models.CASCADE,
+    )
+    name = models.CharField(max_length = 255)
     
     def __str__(self):
         return self.name

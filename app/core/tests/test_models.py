@@ -4,7 +4,6 @@ Testing Models
 
 from unittest.mock import patch
 from decimal import Decimal
-from statistics import mode
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 
@@ -117,4 +116,39 @@ class ModelTests(TestCase):
         file_path =models.recipe_image_file_path(None,'test.jpg')
         
         self.assertEqual(file_path, f'uploads/recipe/{uuid}.jpg')
+        
+    def test_movie_model(self):
+        
+        user = create_user(
+            email ='sushma.kalluri@gmail.com',
+            password = 'sushma143',
+        )
+        
+        movie = models.Movie.objects.create(
+            user = user,
+            name = 'Happy Days',
+            release_date = '2007-10-02',
+            ratings = Decimal(4.9),
+            director = 'Shekar kammula',
+            producer = 'Gary Marshall',
+        )
+        
+        self.assertEqual(str(movie),movie.name)
+        
+    def test_character_model(self):
+        '''Test for character model'''
+        
+        user = create_user(
+            email = 'sushma.kalluri@gmail.com',
+            password='pass1234',
+        )
+        
+        characters = models.Characters.objects.create(
+            user = user,
+            name = 'Kattappa'
+        )
+        
+        self.assertEqual(str(characters),characters.name)
+        
+        
         
