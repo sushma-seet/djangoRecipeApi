@@ -2,6 +2,7 @@
 Test for Movie APIs
 '''
 
+
 from rest_framework.test import APIClient
 from rest_framework import status
 
@@ -163,6 +164,102 @@ class PrivateUserTests(TestCase):
         res = self.client.delete(url)
         
         self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
+        
+    def test_create_movie_with_new_characters(self):
+        
+        ''' Test creating new character with movie'''
+        
+        payload = {
+            'name':'Magadheera',
+            'release_date':'2004-09-21',
+            'ratings':Decimal('4.5'),
+            'characters' :[{'name':'Kalabirava'},{'name':'mithravinda'}]
+            }
+        
+        res = self.client.post(MOVIE_URL, payload ,format='json')
+        
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        movies = models.Movie.objects.filter(user = self.user)
+        movie = movies[0]
+        self.assertEqual(movie.characters.count(),2)
+        for character in payload['characters']:
+            character = models.Characters.objects.filter(
+                user = self.user,
+                name = character['name']
+            ).exists()
+            self.assertTrue(character)
+            
+    def test_create_movie_with_existing_characters(self):
+        
+        ''' Test creating existing character with movie'''
+        
+        character = models.Characters.objects.create(
+            user = self.user,
+            name = 'Arundhathi'
+        )
+        payload = {
+            'name':'Magadheera',
+            'release_date':'2004-09-21',
+            'ratings':Decimal('4.5'),
+            'characters' :[{'name':'Arundhathi'},{'name':'Pashupathi'}]
+            }
+        
+        res = self.client.post(MOVIE_URL, payload ,format='json')
+        
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        movies = models.Movie.objects.filter(user = self.user)
+        movie = movies[0]
+        self.assertEqual(movie.characters.count(),2)
+        self.assertIn(character,movie.characters.all())
+        for character in payload['characters']:
+            character = models.Characters.objects.filter(
+                user = self.user,
+                name = character['name']
+            ).exists()
+            self.assertTrue(character)
+            
+    def test_create_characters_with_update(self):
+        ''' Adding character while movie update'''
+        movie = create_movie(user =self.user)
+        
+        payload = {'characters':[{'name':'Aravinda'}]}
+        url =detail_url(movie.id)
+        
+        res = self.client.patch(url, payload, format ='json')
+        
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        character = models.Characters.objects.get(user = self.user, name ='Aravinda')
+        self.assertIn(character,movie.characters.all())
+        
+    def test_assign_character_with_updating_movie(self):
+        ''' Assign character while movie update'''
+        movie = create_movie(user =self.user)
+        character = models.Characters.objects.create(user=self.user, name = "Rudramadhevi")
+        movie.characters.add(character)
+        
+        payload = {'characters':[{'name':'Anushka'}]}
+        character_2 = models.Characters.objects.create(user=self.user, name = "Anushka")
+        url =detail_url(movie.id)
+        
+        res = self.client.patch(url, payload, format ='json')
+        
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn(character_2,movie.characters.all())
+        self.assertNotIn(character,movie.characters.all())
+        
+    def test_delete_updating_movie(self):
+        ''' delete character while movie update'''
+        movie = create_movie(user =self.user)
+        character = models.Characters.objects.create(user=self.user, name = "Rudramadhevi")
+        movie.characters.add(character)
+        
+        payload = {'characters':[]}
+        url =detail_url(movie.id)
+        
+        res = self.client.patch(url, payload, format ='json')
+        
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(movie.characters.count(),0)
         
         
         

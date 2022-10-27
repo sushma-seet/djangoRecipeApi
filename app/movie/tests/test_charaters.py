@@ -2,6 +2,7 @@
 Tests for adding Character to Movie
 '''
 
+
 from rest_framework import status
 from rest_framework.test import APIClient
 
@@ -10,10 +11,14 @@ from django.test import TestCase
 from django.urls import reverse
 
 from core.models import Characters
-from movie.serializers import CharacterSerializer
+from movie.serializers import CharacterSerializer,CharacterDetailSerializer
 
 
 CHARACTER_URL  = reverse('movie:characters-list')
+
+def detail_url(character_id):
+    '''creating detail url'''
+    return reverse('movie:characters-detail',args=[character_id])
 
 def create_user(email = "test@gmail.com",password="pass123"):
     ''' creating user for test cases'''
@@ -81,6 +86,51 @@ class PrivateUserTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         serializer = CharacterSerializer(actual_characters)
         self.assertEqual(len(res.data),1)
+        
+        
+    def test_create_character(self):
+        '''test create character through link'''
+        payload = {'name':'indhu'}
+        
+        res= self.client.post(CHARACTER_URL, payload)
+        
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        characters = Characters.objects.get(id = res.data['id'])
+        serializer = CharacterSerializer(characters)
+        self.assertEqual(res.data,serializer.data)
+        
+    def test_update_character(self):
+        '''test update character through link'''
+        character = Characters.objects.create(
+            user = self.user,
+            name = "Kalakeya"
+        )
+        
+        url = detail_url(character.id)
+        payload = {'name':'kalabirava'}
+        
+        res= self.client.patch(url, payload)
+        
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        character.refresh_from_db()
+        serializer = CharacterDetailSerializer(character)
+        self.assertEqual(character.name,payload['name'])
+        self.assertEqual(res.data,serializer.data)
+        
+    def test_for_delete_character(self):
+        ''' Test for delete characters'''
+        
+        character = Characters.objects.create(
+            user = self.user,
+            name ='Sherkhan'
+        )
+        
+        url =detail_url(character.id)
+        res = self.client.delete(url)
+        
+        self.assertEqual(res.status_code,status.HTTP_204_NO_CONTENT)
+        
+    
         
 
         

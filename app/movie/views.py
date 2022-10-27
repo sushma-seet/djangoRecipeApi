@@ -39,7 +39,7 @@ class CharacterView(viewsets.ModelViewSet):
     
     ''' View set for Character'''
     
-    serializer_class = serializers.CharacterSerializer
+    serializer_class = serializers.CharacterDetailSerializer
     queryset = models.Characters.objects.all()
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
@@ -48,7 +48,18 @@ class CharacterView(viewsets.ModelViewSet):
     def get_queryset(self):
         ''' filter with authorized user'''
         return self.queryset.filter(user = self.request.user).order_by('-name')
+    
+    def perform_create(self, serializer):
+        ''' save serializer'''
+        serializer.save(user = self.request.user)
         
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return serializers.CharacterSerializer
+        
+        return self.serializer_class
+        
+    
         
     
     
